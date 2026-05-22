@@ -24,7 +24,12 @@ SUPABASE_SERVICE_ROLE_KEY = require("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_API_KEY = require("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = require("ANTHROPIC_API_KEY")
 BRIGHTDATA_API_KEY = require("BRIGHTDATA_API_KEY")
+BRIGHTDATA_GOOGLE_DATASET_ID = require("BRIGHTDATA_GOOGLE_DATASET_ID")
+BRIGHTDATA_YELP_DATASET_ID = require("BRIGHTDATA_YELP_DATASET_ID")
 
-EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_MODEL = "text-embedding-3-large"
+# Truncate large model's native 3072d output to 1536 via OpenAI's `dimensions` parameter.
+# Keeps the schema's `vector(1536)` column unchanged while keeping most of the quality
+# gain over text-embedding-3-small.
 EMBEDDING_DIMENSIONS = 1536
 BRIEF_MODEL = "claude-opus-4-7"

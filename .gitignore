@@ -40,3 +40,6 @@ scripts/.venv/
 __pycache__/
 *.pyc
 .python-version
+
+# raw scraper outputs (not committed)
+/brightdata-raw

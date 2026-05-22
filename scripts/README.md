@@ -6,16 +6,23 @@ scripts write into Supabase.
 ## Pipeline
 
 ```
-ingest  ->  embed  ->  cluster  ->  (brief)
+seed -> pull (Phase A) -> load (Phase B) -> embed (Phase C)
 ```
 
-1. **ingest** — `scripts/ingest/brightdata.py` scrapes reviews via the Bright
-   Data Web Scraper API and upserts them into the `sources` / `reviews` tables.
-2. **embed** — `scripts/ml/embed.py` embeds un-embedded reviews with OpenAI
-   `text-embedding-3-small` and writes the `reviews.embedding` vectors.
-3. **cluster** — `scripts/ml/cluster.py` clusters a source's embeddings
-   (KMeans) and writes `reviews.cluster_id` + the `clusters` table.
-4. **brief** — _TODO_: generate a Claude brief per cluster.
+Two-phase ELT: scrape and normalize are separate scripts, with raw JSON
+persisted to disk between them. Bright Data costs money per pull; disk is
+free. If the normalizer has a bug, re-run the load against saved raw —
+never re-pay for data.
+
+| Script | What it does |
+|---|---|
+| `seed_locations.py` | Read `data/locations.json`, upsert verified rows into Supabase `locations`. Idempotent. |
+| `pull_reviews.py` | **Phase A.** Read verified locations from Supabase, batch one Bright Data trigger per source, save raw JSON to `brightdata-raw/`, log snapshot to `raw_scrapes`. Does NOT touch `reviews`. |
+| `load_reviews.py` *(not yet built)* | **Phase B.** Read raw JSON, normalize, upsert into `reviews` + `location_metadata`. |
+| `embed_reviews.py` *(not yet built)* | **Phase C.** Embed un-embedded review text via OpenAI. |
+| `lib/brightdata.py` | Bright Data API helpers (trigger / poll / download). |
+| `lib/db.py` | Supabase client (service-role; server-side only). |
+| `lib/config.py` | Env loading + var validation. |
 
 ## Setup
 
@@ -33,7 +40,6 @@ Env vars are read from `../.env.local` (see `../.env.example`).
 Run from the **project root** so the `scripts` package resolves:
 
 ```bash
-python -m scripts.ingest.brightdata "https://www.g2.com/products/<slug>/reviews"
-python -m scripts.ml.embed
-python -m scripts.ml.cluster <source_id> 8
+python -m scripts.seed_locations              # --dry-run to preview
+python -m scripts.pull_reviews --source both --years 2 --limit 5
 ```
