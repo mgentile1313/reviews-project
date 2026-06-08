@@ -33,3 +33,4 @@ EMBEDDING_MODEL = "text-embedding-3-large"
 # gain over text-embedding-3-small.
 EMBEDDING_DIMENSIONS = 1536
 BRIEF_MODEL = "claude-opus-4-7"
+LABEL_MODEL = "claude-haiku-4-5-20251001"

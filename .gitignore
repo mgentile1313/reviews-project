@@ -43,3 +43,6 @@ __pycache__/
 
 # raw scraper outputs (not committed)
 /brightdata-raw
+
+# clustering eyeball outputs (intermediate dev artifacts, regenerable)
+/evals/clusters
