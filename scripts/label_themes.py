@@ -42,7 +42,12 @@ from scripts.lib.clustering import (
     partition_by_rating,
 )
 from scripts.lib.db import get_client as get_db
-from scripts.lib.labeling import REP_PER_CLUSTER, stage1_candidates, stage2_select
+from scripts.lib.labeling import (
+    REP_PER_CLUSTER,
+    stage1_candidates,
+    stage2_select,
+    stage3_supporting_quotes,
+)
 
 log = logging.getLogger(__name__)
 
@@ -285,6 +290,27 @@ def process_location(db, anthropic_client, location: dict, args) -> dict:
                 log.info("stage2 pass=%s n=%d → no distinct pick (%s)",
                          pass_slug, job["member_count"], sel.get("rationale"))
 
+    # STAGE 3 — for each cluster with a winning theme, pick up to 3
+    # verbatim supporting quotes with source review IDs (for clean attribution).
+    for job in jobs:
+        sel = job["stage2_pick"]
+        picked_idx = sel.get("picked_index")
+        candidates = job["candidates"]
+        if picked_idx is None or not (0 <= picked_idx < len(candidates)):
+            job["evidence_quotes"] = []
+            continue
+        theme_label = candidates[picked_idx]["label"]
+        quotes = stage3_supporting_quotes(
+            anthropic_client,
+            theme_label,
+            job["representatives"],
+        )
+        job["evidence_quotes"] = quotes
+        log.info(
+            "stage3 pass=%s n=%d → %d supporting quote(s)",
+            job["pass"], job["member_count"], len(quotes),
+        )
+
     # INSERT — one row per cluster.
     inserted = specific_count = generic_count = failed_count = 0
     for job in jobs:
@@ -318,6 +344,7 @@ def process_location(db, anthropic_client, location: dict, args) -> dict:
             "specific": specific,
             "label": label,
             "evidence_quote": evidence_quote,
+            "evidence_quotes": job.get("evidence_quotes") or None,
             "rejection_reason": rejection_reason,
             "representative_review_ids": job["rep_ids"],
             "member_review_ids": job["member_ids"],

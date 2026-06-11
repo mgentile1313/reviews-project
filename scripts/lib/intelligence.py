@@ -135,13 +135,23 @@ def _maybe_fetch_raw_action_reviews(
 
 
 def _fetch_local_themes(db, location_id: str) -> list[dict]:
-    """All themes for this location, sorted by pass then prevalence desc."""
+    """All themes for this location, sorted by pass then prevalence desc.
+
+    Specific themes are enriched with `candidate_quotes` — a list of up to
+    3 verbatim quotes from the cluster, each with full attribution
+    (source, posted_at, rating, review_id). These come from the
+    `evidence_quotes` jsonb column populated at labeling time by Stage 3,
+    and the source_review_id stored alongside each quote lets us attach
+    attribution by direct lookup (no substring matching).
+
+    The brief generator picks 1-3 of these per evidence section.
+    """
     res = (
         db.table("themes")
         .select(
-            "id, pass, specific, label, evidence_quote, rejection_reason, "
-            "representative_review_ids, prevalence, avg_rating, member_count, "
-            "status, first_seen_at, last_seen_at"
+            "id, pass, specific, label, evidence_quote, evidence_quotes, "
+            "rejection_reason, representative_review_ids, prevalence, "
+            "avg_rating, member_count, status, first_seen_at, last_seen_at"
         )
         .eq("location_id", location_id)
         .eq("scope", "location")
@@ -149,7 +159,61 @@ def _fetch_local_themes(db, location_id: str) -> list[dict]:
     )
     themes = res.data or []
     themes.sort(key=lambda t: (t["pass"], -(t.get("prevalence") or 0)))
+    _attach_candidate_quotes(db, themes)
     return themes
+
+
+def _attach_candidate_quotes(db, themes: list[dict]) -> None:
+    """For each specific theme, expand `evidence_quotes` (jsonb stored at
+    labeling time) into `candidate_quotes` — each item carries the quote
+    text plus the source review's source/date/rating, looked up via the
+    stored source_review_id.
+
+    Modifies themes in place. Sets candidate_quotes=[] when a theme has
+    no evidence_quotes payload (e.g., older themes labeled before Stage 3
+    shipped, or themes where Stage 3 produced nothing).
+    """
+    # Gather every source_review_id referenced across all themes.
+    all_source_ids: set[str] = set()
+    for t in themes:
+        if not t.get("specific"):
+            continue
+        for q in (t.get("evidence_quotes") or []):
+            rid = q.get("source_review_id") if isinstance(q, dict) else None
+            if rid:
+                all_source_ids.add(rid)
+
+    if not all_source_ids:
+        for t in themes:
+            t["candidate_quotes"] = []
+        return
+
+    res = (
+        db.table("reviews")
+        .select("id, source, posted_at, rating")
+        .in_("id", list(all_source_ids))
+        .execute()
+    )
+    by_id = {r["id"]: r for r in (res.data or [])}
+
+    for t in themes:
+        cqs: list[dict] = []
+        for q in (t.get("evidence_quotes") or []):
+            if not isinstance(q, dict):
+                continue
+            quote_text = q.get("quote")
+            rid = q.get("source_review_id")
+            if not quote_text or not rid:
+                continue
+            meta = by_id.get(rid)
+            cqs.append({
+                "quote": quote_text,
+                "review_id": rid,
+                "source": meta.get("source") if meta else None,
+                "posted_at": meta.get("posted_at") if meta else None,
+                "rating": meta.get("rating") if meta else None,
+            })
+        t["candidate_quotes"] = cqs
 
 
 def _fetch_network_themes_by_id(db) -> dict[str, dict]:
