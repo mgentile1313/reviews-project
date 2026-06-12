@@ -46,3 +46,7 @@ __pycache__/
 
 # clustering eyeball outputs (intermediate dev artifacts, regenerable)
 /evals/clusters
+
+# internal planning and running notes — kept local, never committed
+/project-plans
+/docs/project-narrative.md
