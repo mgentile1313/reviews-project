@@ -57,3 +57,47 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Markdown rendering for generated briefs. Scoped so it can't leak. */
+.brief-prose {
+  @apply text-sm leading-relaxed text-foreground;
+}
+.brief-prose h1 {
+  @apply mb-2 mt-0 text-2xl font-bold tracking-tight text-green-900;
+}
+.brief-prose h2 {
+  @apply mb-3 mt-8 border-b border-green-900/15 pb-1 text-lg font-semibold text-green-900;
+}
+.brief-prose h3 {
+  @apply mb-2 mt-6 text-base font-semibold text-green-800;
+}
+.brief-prose p {
+  @apply mb-3;
+}
+.brief-prose ul {
+  @apply mb-4 list-disc space-y-1 pl-5;
+}
+.brief-prose ol {
+  @apply mb-4 list-decimal space-y-1 pl-5;
+}
+.brief-prose li {
+  @apply leading-relaxed;
+}
+.brief-prose strong {
+  @apply font-semibold text-green-900;
+}
+.brief-prose em {
+  @apply italic;
+}
+.brief-prose blockquote {
+  @apply my-3 border-l-4 border-green-900/20 bg-green-50/40 px-3 py-1.5 italic;
+}
+.brief-prose code {
+  @apply rounded bg-muted px-1 py-0.5 font-mono text-xs;
+}
+.brief-prose hr {
+  @apply my-6 border-muted;
+}
+.brief-prose a {
+  @apply text-sky-700 underline-offset-2 hover:underline;
+}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Nav } from "@/components/nav";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -15,8 +16,11 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "reviews-project",
-  description: "Scrape reviews, cluster them, generate briefs.",
+  title: {
+    default: "Reviews Intelligence",
+    template: "%s — Reviews Intelligence",
+  },
+  description: "Cluster reviews, surface anomalies, generate manager briefs.",
 };
 
 export default function RootLayout({
@@ -33,7 +37,8 @@ export default function RootLayout({
           "font-sans antialiased",
         )}
       >
-        {children}
+        <Nav />
+        <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
       </body>
     </html>
   );
