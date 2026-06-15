@@ -50,3 +50,7 @@ __pycache__/
 # internal planning and running notes — kept local, never committed
 /project-plans
 /docs/project-narrative.md
+
+# AI-assistant project instructions — kept local, not part of the public repo
+/CLAUDE.md
+.gstack/

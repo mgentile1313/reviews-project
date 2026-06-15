@@ -33,15 +33,16 @@ import sys
 from datetime import datetime, timezone
 
 from scripts.lib.anthropic import get_client as get_anthropic
+from scripts.lib.config import BRIEF_MODEL
 from scripts.lib.db import get_client as get_db
 from scripts.lib.intelligence import get_location_intelligence
 
 log = logging.getLogger(__name__)
 
-BRIEF_MODEL = "claude-opus-4-7"
 MAX_TOKENS = 4000
 
-# Opus 4.7 pricing (per 1M tokens) — for the dry-run cost estimate.
+# Pricing must match BRIEF_MODEL (config: claude-opus-4-7), per 1M tokens —
+# used only for the dry-run estimate; actual cost is computed from API usage.
 PRICE_INPUT_PER_M = 15.0
 PRICE_OUTPUT_PER_M = 75.0
 PRICE_CACHED_INPUT_PER_M = 1.5

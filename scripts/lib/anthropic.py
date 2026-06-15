@@ -6,5 +6,5 @@ from .config import ANTHROPIC_API_KEY
 
 
 def get_client() -> Anthropic:
-    """Return an Anthropic client. Used by labeling (Haiku) and briefs (Sonnet/Opus)."""
+    """Return an Anthropic client. Used by labeling (Haiku) and briefs (Opus)."""
     return Anthropic(api_key=ANTHROPIC_API_KEY)
