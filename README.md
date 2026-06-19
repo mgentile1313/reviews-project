@@ -2,6 +2,8 @@
 
 **Turn thousands of messy Google and Yelp reviews into per-location action briefs a store manager can act on Monday morning.**
 
+**[▶ Live demo](https://reviews-project-iota.vercel.app/)**  ·  [Architecture](ARCHITECTURE.md)  ·  [Design decisions](DECISIONS.md)  ·  [Evaluation](evals/README.md)
+
 A review-intelligence tool for multi-location businesses, built as a demo on
 **Mavis** (a ~34-store tire-shop network). It scrapes ~19,000 Google + Yelp
 reviews, embeds and clusters them into recurring themes, scores each location
