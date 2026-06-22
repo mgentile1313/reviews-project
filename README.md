@@ -2,7 +2,7 @@
 
 **Turn thousands of messy Google and Yelp reviews into per-location action briefs a store manager can act on Monday morning.**
 
-**[▶ Live demo](https://reviews-project-iota.vercel.app/)**  ·  [Architecture](ARCHITECTURE.md)  ·  [Design decisions](DECISIONS.md)  ·  [Evaluation](evals/README.md)
+**[▶ Live demo](https://reviews-project-iota.vercel.app/)**  ·  **[▶ Demo video (MCP)](https://www.loom.com/share/c0901ef1e61445289a92cbf12efca470)**  ·  [Architecture](ARCHITECTURE.md)  ·  [Design decisions](DECISIONS.md)  ·  [Evaluation](evals/README.md)
 
 A review-intelligence tool for multi-location businesses, built as a demo on
 **Mavis** (a ~34-store tire-shop network). It scrapes ~19,000 Google + Yelp
@@ -114,13 +114,42 @@ Scraping is the only meaningful cost and is paid once, then cached to disk.
 
 ## Querying it with Claude (MCP)
 
-The MCP server in [`scripts/mcp_server.py`](scripts/mcp_server.py) exposes 8
+[`scripts/mcp_server.py`](scripts/mcp_server.py) exposes the dataset as 8
 read-only tools (`list_locations`, `search_reviews`, `get_location_brief`,
-`get_location_anomalies`, `get_theme_prevalence`, …). Point Claude Desktop at it
-and ask things like *"Which stores are worst on the unauthorized-work theme, and
-what should they do?"* — it chains the tools and answers from your data.
-Transport is stdio (local); see [`ARCHITECTURE.md`](ARCHITECTURE.md) for the
-local-vs-remote + auth path.
+`get_location_anomalies`, `get_theme_prevalence`, …) so Claude can answer
+questions like *"Which stores are worst on the unauthorized-work theme, and what
+should they do?"* by chaining tools and citing real reviews.
+
+**[▶ Watch it in action](https://www.loom.com/share/c0901ef1e61445289a92cbf12efca470)** —
+the easiest way to see it without running anything.
+
+It is a **local stdio server**, not a hosted service: Claude Desktop launches it
+as a subprocess on your machine. There is no public endpoint. To run it yourself
+you need this repo, the Python venv, and **your own database credentials** in
+`.env.local` — the server authenticates with a Supabase service-role key, so it
+can't be shared as-is.
+
+<details>
+<summary>Local setup</summary>
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`, then
+restart Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "reviews-intelligence": {
+      "command": "/abs/path/to/repo/scripts/.venv/bin/python",
+      "args": ["-m", "scripts.mcp_server"],
+      "env": { "PYTHONPATH": "/abs/path/to/repo" }
+    }
+  }
+}
+```
+</details>
+
+Making it usable from a link (remote transport + auth, rather than a local
+subprocess) is a documented next step — see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Repo layout
 
